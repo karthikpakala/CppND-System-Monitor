@@ -255,14 +255,6 @@ float LinuxParser::CpuUtilization(int pid){
       long cstime;
       long starttime;
       vector <long> values {0};
-      /*
-      for(int i = 0; i < 13; i++) linestream >> ignore;
-      linestream >> utime >> stime >> cutime >> cstime ;
-      for(int i = 0; i < 4; i++) linestream >> ignore;
-      linestream >> starttime;
-      cputime = utime + stime + cutime + cstime + starttime;
-      return cputime;
-  */
       for (int i = 0; i < 53; i++){
         int n = 0;
         long val;
