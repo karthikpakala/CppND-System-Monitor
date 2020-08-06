@@ -14,6 +14,7 @@ using std::string;
 using std::to_string;
 using std::vector;
 
+
 // DONE: An example of how to read data from the filesystem
 string LinuxParser::OperatingSystem() {
   string line;
@@ -151,15 +152,19 @@ long LinuxParser::ActiveJiffies(int pid) {
       std::string line;
       std::getline(filestream, line);
       std::istringstream linestream(line);
-      std::string ignore;
+      std::string notNeeded;
       long utime;
       long stime;
       long cutime;
       long cstime;
       long starttime;
-      for(int i = 0; i < 13; i++) linestream >> ignore;
+      for(int i = 0; i < 13; i++){
+      linestream >> notNeeded;
+      }
       linestream >> utime >> stime >> cutime >> cstime ;
-      for(int i = 0; i < 4; i++) linestream >> ignore;
+      for(int i = 0; i < 4; i++) {
+        linestream >> notNeeded;
+      }
       linestream >> starttime;
       return utime + stime + cutime + cstime +starttime;
   }
@@ -204,8 +209,8 @@ float LinuxParser::CpuUtilization() {
   prevsteal{0}, prevguest{0}, prevguestnice{0};
   std::string cpu {"cpu"};
   float cpuPerc{0.0};
-  long Idle{0}, NonIdle{0}, Total{0}, System {0}, Virtual {0}, 
-        PrevIdle{0}, PrevNonIdle{0}, PrevTotal{0}, PrevSystem {0}, PrevVirtual {0};
+  long Idle{0}, NonIdle{0}, Total{0}, System {0}, 
+        PrevIdle{0}, PrevNonIdle{0}, PrevTotal{0}, PrevSystem {0};
   if(filestream.is_open()){
     std::string line{""};
     std::getline(filestream, line);
@@ -213,7 +218,7 @@ float LinuxParser::CpuUtilization() {
     linestream>>cpu>>prevuser>>prevnice>>prevsystem>>previdle>>previowait>>previrq>>prevsoftirq>>prevsteal>>prevguest>>prevguestnice;
     PrevIdle = previdle + previowait;
     PrevSystem = prevsystem + previrq + prevsoftirq;
-    PrevVirtual = prevguest + prevguestnice;
+    //PrevVirtual = prevguest + prevguestnice;
     PrevNonIdle = prevuser + prevnice + PrevSystem + prevsteal;
     PrevTotal = PrevIdle + PrevNonIdle;
     filestream.close();
@@ -228,7 +233,7 @@ float LinuxParser::CpuUtilization() {
     linestream1>>cpu>>user>>nice>>system>>idle>>iowait>>irq>>softirq>>steal>>guest>>guestnice;
     Idle = idle + iowait;
     System = system + irq + softirq;
-    Virtual = guest + guestnice;
+    //Virtual = guest + guestnice;
     NonIdle = user + nice + System  + steal;
     Total = Idle + NonIdle;
     filestream1.close();
@@ -239,50 +244,43 @@ float LinuxParser::CpuUtilization() {
   return cpuPerc; 
   }
 
+//float LinuxParser::CpuUtilization(int pid){};
+
 float LinuxParser::CpuUtilization(int pid){
   std::stringstream filename;
   filename << kProcDirectory << "/" << pid << "/" << kStatFilename;
   std::ifstream filestream(filename.str());
-  long cputime;
+  float cputime{0.0};
   if (filestream.is_open()) {
       std::string line;
       std::getline(filestream, line);
       std::istringstream linestream(line);
       std::string ignore;
-      long utime;
-      long stime;
-      long cutime;
-      long cstime;
-      long starttime;
-      vector <long> values {0};
-      for (int i = 0; i < 53; i++){
-        int n = 0;
-        long val;
-        if(i > 13  || i < 18){
-          linestream>>val;
-          n++;
-          values.at(n) = val;
+      long utime{0};
+      long stime{0};
+      long cutime{0};
+      long cstime{0};
+      long starttime{0};
+      std::string temp;
+      vector <long> values;
+      for (int i = 0; i < 13; i++){
+        linestream>>temp;
         }
+        linestream>>utime>>stime>>cutime>>cstime;
         
-        else if(i = 22) {
-          linestream >> val;
-          starttime = val;
-          break;
-          
+      for(int i = 1; i<4; i++){
+          linestream >> temp;
        }
-      }
-      utime = values.at(0);
-      stime = values.at(1);
-      cutime = values.at(2);
-      cstime = values.at(3);
+        linestream>>starttime;
       long total_time = utime + stime + cutime + cstime;
       long uptime = LinuxParser::UpTime();
-      //long Hertz = sysconf(_SC_CLK_TCK);
-      long Hertz = 1;
+      
+      float Hertz = sysconf(_SC_CLK_TCK);
+      //long Hertz = 1;
       float seconds = uptime - (starttime / Hertz);
 
-      cputime = 100 * ((total_time / Hertz) / seconds);
-
+     cputime = ((total_time / Hertz) / seconds);
+    
   }
   return cputime; 
   }
