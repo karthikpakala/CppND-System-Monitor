@@ -128,7 +128,7 @@ long LinuxParser::Jiffies() {
   std::string line;
   std::string cpu{"cpu"};
   long user, nice, system, idle, iowait, irq, softirq, steal, guess, guessnice;
-  long jiffies;
+  long jiffies {0};
   if(filestream.is_open()){
     std::getline(filestream, line);
     std::istringstream linestream(line);
@@ -148,7 +148,7 @@ long LinuxParser::ActiveJiffies(int pid) {
   std::stringstream filename;
   filename << kProcDirectory << "/" << pid << "/" << kStatFilename;
   std::ifstream filestream(filename.str());
-  long jiffies;
+  long jiffies {0};
   if (filestream.is_open()) {
       std::string line;
       std::getline(filestream, line);
@@ -381,14 +381,14 @@ string LinuxParser::Uid(int pid) {
   string uid ;
   if (filestream.is_open()) {
       std::string line;
-      bool foundUid = false;
-      while (!foundUid && std::getline(filestream, line)) {
+      bool foundId = false;
+      while (!foundId && std::getline(filestream, line)) {
         std::istringstream linestream(line);
         std::string key;
         linestream >> key;
         if (key == "Uid:") {
           linestream >> uid;
-          foundUid = true;
+          foundId = true;
         }
 
       }
@@ -428,6 +428,7 @@ long LinuxParser::UpTime(int pid) {
   filename << kProcDirectory << "/" << pid << "/" << kStatFilename;
   std::ifstream filestream(filename.str());
   long starttime = 0;
+  long UpTime;
   if (filestream.is_open()) {
       std::string line;
       std::getline(filestream, line);
@@ -435,11 +436,8 @@ long LinuxParser::UpTime(int pid) {
       std::string ignore;
       for(int i = 0; i < 21; i++) linestream >> ignore;
       linestream >> starttime;
-      struct timeval tv;
-      gettimeofday(&tv, 0);
-      //std::time_t now = std::time(0);
-      std::time_t elapsedTime = LinuxParser::UpTime() - (starttime/sysconf(_SC_CLK_TCK));
-      return elapsedTime;
+      std::time_t UpTime = LinuxParser::UpTime() - (starttime/sysconf(_SC_CLK_TCK));
+      return UpTime;
   }
-  return starttime; 
+  return UpTime; 
   }
