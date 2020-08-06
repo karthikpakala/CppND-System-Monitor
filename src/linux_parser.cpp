@@ -148,6 +148,7 @@ long LinuxParser::ActiveJiffies(int pid) {
   std::stringstream filename;
   filename << kProcDirectory << "/" << pid << "/" << kStatFilename;
   std::ifstream filestream(filename.str());
+  long jiffies;
   if (filestream.is_open()) {
       std::string line;
       std::getline(filestream, line);
@@ -166,9 +167,10 @@ long LinuxParser::ActiveJiffies(int pid) {
         linestream >> notNeeded;
       }
       linestream >> starttime;
-      return utime + stime + cutime + cstime +starttime;
+      jiffies =  utime + stime + cutime + cstime +starttime;
+      return jiffies;
   }
-  return 0; 
+  return jiffies; 
   }
 
 // TODO: Read and return the number of active jiffies for the system
@@ -313,19 +315,14 @@ int LinuxParser::RunningProcesses() {
   std::ifstream filestream(kProcDirectory + kStatFilename);
   int Proc {0};
   std::string key {""};
-  //bool ProcBool = false;
-  //bool processFound = false;
   if(filestream.is_open()){
     std::string line;
-    //bool ProcBool = false;
     while(std::getline(filestream, line)){
     std::istringstream linestream(line);
     linestream>>key;
     if (key == "procs_running")
     {
       linestream >> Proc;
-     // ProcBool = true;
-     // return totalProc;
     }
     }
   }
@@ -340,11 +337,14 @@ string LinuxParser::Command(int pid) {
  std::stringstream filename;
   filename << kProcDirectory << "/" << pid << "/" << kCmdlineFilename;
   std::ifstream filestream(filename.str());
-  std::string commandLine ;
+  std::string cmdLine;
   if (filestream.is_open()) {
-      std::getline(filestream, commandLine);
+      std::string line;
+      std::getline(filestream, line);
+      std::istringstream linestream(line);
+      linestream>>cmdLine;
   }
-  return commandLine;
+  return cmdLine;
  }
 // TODO: Read and return the memory used by a process
 // REMOVE: [[maybe_unused]] once you define the function
