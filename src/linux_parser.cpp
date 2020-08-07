@@ -428,7 +428,7 @@ long LinuxParser::UpTime(int pid) {
   filename << kProcDirectory << "/" << pid << "/" << kStatFilename;
   std::ifstream filestream(filename.str());
   long starttime = 0;
-  long UpTime;
+  long UpTime {0};
   if (filestream.is_open()) {
       std::string line;
       std::getline(filestream, line);
